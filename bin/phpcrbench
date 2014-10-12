@@ -1,0 +1,18 @@
+#!/usr/bin/env php
+<?php
+
+$vendorDir = __DIR__.'/../vendor';
+
+$file = $vendorDir.'/autoload.php';
+
+if (file_exists($file)) {
+    $autoload = require_once $file;
+} else {
+    echo 'Cannot find the vendor directory, have you executed composer install?';
+    exit(1);
+}
+
+$suites = require(__DIR__ . '/../config/suites.php');
+
+$application = new PHPCR\Benchmark\Console\Application($suites);
+$application->run();

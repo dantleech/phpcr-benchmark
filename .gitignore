@@ -1,0 +1,3 @@
+data/doctrine-dbal-sqlite
+vendor
+composer.lock
