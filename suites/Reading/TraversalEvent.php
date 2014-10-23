@@ -3,54 +3,59 @@
 namespace PHPCR\Benchmark\Suites\Reading;
 
 use PHPCR\Benchmark\AthleticEvent;
+use PHPCR\Util\NodeHelper;
 
 class TraversalEvent extends AthleticEvent
 {
-    public function setUp()
+    public function provideFullTreeTraversal()
     {
-        parent::setUp();
+       return array(
+            array(10),
+            array(1),
+        //    array(100),
+        );
+    }
 
-        $builder = $this->createNodeBuilder('cmf')
-            ->node('article-[1-10]')
+    public function generateNodes($nbNodes)
+    {
+        NodeHelper::purgeWorkspace($this->getSession());
+        $this->session->save();
+
+        $builder = $this->createNodeBuilder('cmf');
+        $builder
+            ->node('article-[1-100]')
                 ->property('title', 'Foobar')
                 ->node('animals')
-                    ->node('animal[1-100]')
+                    ->node('animal-[1-100]')
                          ->property('name', 'Animal X')
+                        ->node('sheep')
+                        ->node('cow')
+                        ->node('pig')
                     ->end()
                 ->end()
-                ->node('category-[1-10]');
+                ->node('pets')
+                    ->node('cat')
+                    ->node('dog')
+                    ->node('rabbit')
+                ->end();
 
-        $this->getConverter()->convert($builder);
+        $converter = $this->getConverter();
+        $converter->setLimit($nbNodes);
+        $converter->convert($builder);
         $this->session->save();
     }
 
     /**
-     * @iterations 10
+     * @beforeMethod generateNodes
+     * @dataProvider provideFullTreeTraversal
+     * @iterations 1
+     * @iterations 2
      */
-    public function benchFullTree10()
+    public function performFullTreeTraversal($nbNodes)
     {
-        $rootNode = $this->session->getRootNode();
+        $rootNode = $this->getSession()->getRootNode();
         $this->iterateNode($rootNode);
     }
-
-    /**
-     * @iterations 100
-     */
-    public function benchFullTree100()
-    {
-        $rootNode = $this->session->getRootNode();
-        $this->iterateNode($rootNode);
-    }
-
-    /**
-     * @iterations 1000
-     */
-    public function benchFullTree1000()
-    {
-        $rootNode = $this->session->getRootNode();
-        $this->iterateNode($rootNode);
-    }
-
 
     private function iterateNode($node)
     {
@@ -60,5 +65,19 @@ class TraversalEvent extends AthleticEvent
         foreach ($node->getNodes() as $child) {
             $this->iterateNode($child);
         }
+    }
+
+    /**
+     * @beforeMethod generateNodes
+     * @dataProvider provideFullTreeTraversal
+     * @iterations 1
+     * @iterations 10
+     */
+    public function performSelectAllFromNtUnstructured($nbNodes)
+    {
+        $qm = $this->getSession()->getWorkspace()->getQueryManager();
+        $sql2 = 'SELECT * FROM [nt:unstructured]';
+        $query = $qm->createQuery($sql2, \PHPCR\Query\QueryInterface::JCR_SQL2);
+        $query->execute();
     }
 }
