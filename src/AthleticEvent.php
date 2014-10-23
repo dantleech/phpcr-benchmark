@@ -15,13 +15,11 @@ abstract class AthleticEvent extends BaseAthleticEvent
 
     public function classSetUp()
     {
+        NodeHelper::purgeWorkspace($this->getSession());
     }
 
     public function setUp()
     {
-        $factory = new RepositoryFactory();
-        $this->repository = $factory->get(IMPLEMENTATION);
-        NodeHelper::purgeWorkspace($this->getSession());
     }
 
     public function getSession()
@@ -30,6 +28,8 @@ abstract class AthleticEvent extends BaseAthleticEvent
             return $this->session;
         }
 
+        $factory = new RepositoryFactory();
+        $this->repository = $factory->get(IMPLEMENTATION);
         $credentials = new SimpleCredentials('admin', 'admin');
         $this->session = $this->repository->login($credentials);
         return $this->session;

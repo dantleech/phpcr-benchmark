@@ -1,18 +1,14 @@
 #!/usr/bin/env php
 <?php
 
-$vendorDir = __DIR__.'/../vendor';
+require_once(__DIR__ . '/common.php');
 
-$file = $vendorDir.'/autoload.php';
+define('IMPLEMENTATION', getenv('PHPCR_IMPLEMENTATION'));
 
-if (file_exists($file)) {
-    $autoload = require_once $file;
-} else {
-    echo 'Cannot find the vendor directory, have you executed composer install?';
+if (!IMPLEMENTATION) {
+    echo 'You must define the PHPCR_IMPLEMENTATION environment variable (e.g. to doctrine-dbal)';
     exit(1);
 }
 
-$suites = require(__DIR__ . '/../config/suites.php');
-
-$application = new PHPCR\Benchmark\Console\Application($suites);
-$application->run();
+$athletic = new Athletic\Athletic();
+$athletic->run();
